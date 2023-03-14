@@ -1,50 +1,59 @@
 package converter
 
-import kotlin.math.pow
+import java.math.BigInteger
 
 // Do not delete this line
 
 fun main() {
+    var askAgain = true
+    var input: String
+    var source: BigInteger = 0.toBigInteger()
+    var base: BigInteger = 0.toBigInteger()
+
     while (true) {
-        println("Do you want to convert /from decimal or /to decimal?  (To quit type /exit)")
-        when (readln()) {
-            "/from" -> fromDecimal()
-            "/to" -> toDecimal()
-            "/exit" -> return
-            else -> println("Unknown option")
+        if (askAgain) {
+            println("Enter two numbers in format: {source base} {target base} (To quit type /exit)")
+            input = readln()
+
+            if (input == "/exit") {
+                break
+            } else if (input == "/back") {
+                askAgain = true
+                continue
+            }
+
+            val bases = input.split(" ")
+            source = bases[0].toBigInteger()
+            base = bases[1].toBigInteger()
+            askAgain = false
         }
+
+        println("Enter number in base $source to convert to base $base (To go back type /back)")
+        input = readln()
+
+        if (input == "/exit") {
+            break
+        } else if (input == "/back") {
+            askAgain = true
+            continue
+        }
+
+        println("Conversion result: ${convertBase(source, base, input)}")
     }
 }
 
-fun fromDecimal() {
-    println("Enter number in decimal system:")
-    var dec = readln().toInt()
-    println("Enter target base:")
-    val target = readln().toInt()
+fun convertBase(sourceBase: BigInteger, targetBase: BigInteger, source: String): String {
+    val toDecimal = source.uppercase().reversed().foldIndexed(BigInteger.ZERO) { index, acc, char ->
+        val value = if (char >= 'A') char - 'A' + 10 else char.toString().toInt()
+        acc + (value.toBigInteger() * sourceBase.pow(index))
+    }.toString()
 
-    var result = ""
-    while (dec > 0) {
-        val remain = dec % target
-        result = if (remain >= 10) 'A' + remain - 10 + result else remain.toString() + result
-        dec /= target
+    var result = toDecimal.toBigInteger()
+    val stringBuilder = StringBuilder()
+    while (result > BigInteger.ZERO) {
+        val remainder = (result % targetBase).toInt()
+        stringBuilder.append(if (remainder >= 10) 'A' + remainder - 10 else remainder)
+        result /= targetBase
     }
-
-    println("Conversion result: $result")
+    return if (stringBuilder.isEmpty()) "0" else stringBuilder.toString().reversed()
 }
-
-fun toDecimal() {
-    println("Enter source number:")
-    val source = readln().reversed().uppercase()
-    println("Enter source base:")
-    val base = readln().toDouble()
-
-    val result = source.indices.sumOf {
-        (if (source[it] >= 'A') source[it] - 'A' + 10 else source[it].digitToInt()) * base.pow(
-            it
-        ).toInt()
-    }
-
-    println("Conversion to decimal result: $result")
-}
-
-
